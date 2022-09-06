@@ -29,7 +29,7 @@ describe("<CreateRoundPage />", () => {
   it("sends program to form wizard", () => {
     const programs = [makeProgramData({ id: programId })];
 
-    renderWithContext(<CreateRoundPage />, { programs });
+    renderWithContext(<CreateRoundPage />, { data: programs});
 
     const firstFormWizardCall = formWizardSpy.mock.calls[0];
     const firstCallArgument = firstFormWizardCall[0];
@@ -43,7 +43,7 @@ describe("<CreateRoundPage />", () => {
     const programToChoose = makeProgramData({ id: programId });
     const programs = [makeProgramData(), programToChoose, makeProgramData()];
 
-    renderWithContext(<CreateRoundPage />, { programs });
+    renderWithContext(<CreateRoundPage />, { data: programs});
 
     const firstFormWizardCall = formWizardSpy.mock.calls[0];
     const firstCallArgument = firstFormWizardCall[0];

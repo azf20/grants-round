@@ -5,13 +5,13 @@ import { Web3Provider } from "@ethersproject/providers";
 /**
  * Fetch a list of programs
  * @param address - a valid program operator
- * @param signerOrProvider - signer
+ * @param signerOrProvider - provider
  *
  */
 export async function listPrograms(
   address: string,
   signerOrProvider: Web3Provider
-): Promise<Program[]> {
+): Promise<{ data: Program[]; error: string | undefined }> {
   try {
     // fetch chain id
     const { chainId } = await signerOrProvider.getNetwork();
