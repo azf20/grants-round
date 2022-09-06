@@ -27,13 +27,15 @@ interface Action {
 
 type Dispatch = (action: Action) => void;
 
+export type ProgramContextType =
+  { state: ProgramState; dispatch: Dispatch } | undefined;
+
+
 export const initialProgramState: ProgramState = {
   programs: [],
   isLoading: false,
 };
-export const ProgramContext = createContext<
-  { state: ProgramState; dispatch: Dispatch } | undefined
->(undefined);
+export const ProgramContext = createContext<ProgramContextType>(undefined);
 
 const fetchProgramsByAddress = async (
   dispatch: Dispatch,

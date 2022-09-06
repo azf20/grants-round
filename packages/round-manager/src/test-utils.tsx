@@ -61,20 +61,20 @@ export const makeGrantApplicationData = (
   overrides: Partial<GrantApplication> = {},
   projectCredentials: ProjectCredentials = {}
 ): GrantApplication => ({
-  id: faker.random.alpha({ count: 10, casing: "lower" }),
-  round: faker.random.alpha({ count: 59, casing: "lower" }),
+  id: faker.random.alpha({count: 10, casing: "lower"}),
+  round: faker.random.alpha({count: 59, casing: "lower"}),
   recipient: faker.finance.ethereumAddress(),
   project: {
     lastUpdated: 1659714564,
-    id: faker.random.alpha({ count: 10, casing: "lower" }),
+    id: faker.random.alpha({count: 10, casing: "lower"}),
     title: faker.lorem.sentence(2),
     description: faker.lorem.sentence(10),
     website: faker.internet.domainName(),
-    bannerImg: faker.random.alpha({ count: 59, casing: "lower" }),
-    logoImg: faker.random.alpha({ count: 59, casing: "lower" }),
+    bannerImg: faker.random.alpha({count: 59, casing: "lower"}),
+    logoImg: faker.random.alpha({count: 59, casing: "lower"}),
     metaPtr: {
       protocol: randomInt(1, 10),
-      pointer: faker.random.alpha({ count: 59, casing: "lower" }),
+      pointer: faker.random.alpha({count: 59, casing: "lower"}),
     },
     credentials: projectCredentials,
   },
@@ -97,7 +97,7 @@ export const makeGrantApplicationData = (
   ],
   projectsMetaPtr: {
     protocol: randomInt(1, 10),
-    pointer: faker.random.alpha({ count: 59, casing: "lower" }),
+    pointer: faker.random.alpha({count: 59, casing: "lower"}),
   },
   status: ["PENDING", "APPROVED", "REJECTED", "APPEAL", "FRAUD"][
     randomInt(0, 4)
@@ -180,13 +180,29 @@ export const renderWithContext = (
 ) =>
   render(
     <MemoryRouter>
-      <ProgramContext.Provider
-        value={{
-          state: { ...initialProgramState, ...programStateOverrides },
-          dispatch,
-        }}
-      >
+      <ProgramContext.Provider value={{state: {...initialProgramState, ...programStateOverrides}, dispatch,
+        }}>
         {ui}
       </ProgramContext.Provider>
     </MemoryRouter>
   );
+
+type ContextMock<T> = {
+  context: React.Context<any>;
+  value: T;
+}
+
+/**
+ * Wraps the element in an arbitrary amount of contexts for testing purposes
+ * @param element the final child element. Can be a React component, an HTML tag, or even a string, null. etc. See ReactElement type
+ * @param contexts the contexts to wrap the element with, including their values
+ */
+export function wrapInContexts<T>(element: React.ReactNode, contexts: ContextMock<T>[])  {
+  return (
+    <>
+      {contexts.reduceRight((acc, {context, value}) => {
+        return <context.Provider value={value}>{acc}</context.Provider>;
+      }, element)}
+    </>
+  );
+};
