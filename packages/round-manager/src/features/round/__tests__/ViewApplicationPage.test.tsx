@@ -222,4 +222,26 @@ describe("ViewApplicationPage", () => {
       ).not.toBeInTheDocument();
     }
   );
+
+  it("shows invalid badge when project owner address does not match vc", () => {
+    verifyCredentialMock.mockResolvedValue(true);
+    const projectCredentials: ProjectCredentials = {
+      github: { ...githubCredentialData },
+    };
+    const grantApplicationData = makeGrantApplicationData(
+      {},
+      projectCredentials
+    );
+    grantApplicationData!.project!.owners[0].address = "bad";
+
+    (useListGrantApplicationsQuery as any).mockReturnValue(
+      grantApplicationData
+    );
+
+    renderWrapped(<ViewApplicationPage />);
+
+    expect(
+      screen.queryByTestId(`github-verifiable-credential`)
+    ).not.toBeInTheDocument();
+  });
 });
