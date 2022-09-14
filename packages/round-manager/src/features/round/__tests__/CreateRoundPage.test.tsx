@@ -23,13 +23,17 @@ jest.mock("react-router-dom", () => ({
 
 describe("<CreateRoundPage />", () => {
   beforeEach(() => {
-    (useWallet as jest.Mock).mockReturnValue({ chain: {}, address: "0x0", provider: { getNetwork: () => ({ chainId: "0x0"}) }});
+    (useWallet as jest.Mock).mockReturnValue({
+      chain: {},
+      address: "0x0",
+      provider: { getNetwork: () => ({ chainId: "0x0" }) },
+    });
   });
 
   it("sends program to form wizard", () => {
     const programs = [makeProgramData({ id: programId })];
 
-    renderWithContext(<CreateRoundPage />, { data: programs});
+    renderWithContext(<CreateRoundPage />, { programs });
 
     const firstFormWizardCall = formWizardSpy.mock.calls[0];
     const firstCallArgument = firstFormWizardCall[0];
@@ -43,7 +47,7 @@ describe("<CreateRoundPage />", () => {
     const programToChoose = makeProgramData({ id: programId });
     const programs = [makeProgramData(), programToChoose, makeProgramData()];
 
-    renderWithContext(<CreateRoundPage />, { data: programs});
+    renderWithContext(<CreateRoundPage />, { programs });
 
     const firstFormWizardCall = formWizardSpy.mock.calls[0];
     const firstCallArgument = firstFormWizardCall[0];

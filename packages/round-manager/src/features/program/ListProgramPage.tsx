@@ -72,7 +72,7 @@ function ListPrograms() {
   datadogLogs.logger.info("====> Route: /");
   datadogLogs.logger.info(`====> URL: ${window.location.href}`);
 
-  const { data: programs, isLoading, error: listProgramsError } = usePrograms();
+  const { programs, isLoading, listProgramsError } = usePrograms();
 
   function hasNoPrograms() {
     return !programs || programs.length === 0;
