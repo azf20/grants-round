@@ -1,4 +1,5 @@
 import {
+  AnswerBlock,
   GrantApplication,
   Program,
   ProjectCredentials,
@@ -57,17 +58,41 @@ export const makeRoundData = (overrides: Partial<Round> = {}): Round => {
   };
 };
 
-export const makeGrantApplicationData = (
-  overrides: Partial<GrantApplication> = {},
-  projectCredentials: ProjectCredentials = {}
-): GrantApplication => {
-  const githubVcIdSplit =
-    projectCredentials["github"]?.credentialSubject.id.split(":") ?? [];
-  const githubVcSubjectAddress = githubVcIdSplit[githubVcIdSplit.length - 1];
-  const twitterVcIdSplit =
-    projectCredentials["twitter"]?.credentialSubject.id.split(":") ?? [];
-  const twitterVcSubjectAddress = twitterVcIdSplit[twitterVcIdSplit.length - 1];
+export type ApplicationAndCredentialRelatedData = {
+  credentialsProviderKey: string;
+  credentialSubjectProviderString: string;
+  grantApplicationProviderAnswer: {
+    question: string;
+    answer: string;
+  };
+};
 
+export const makeApplicationAndCredentialRelatedDataForGithub = (
+  githubOrgName = "gitcoinco"
+): ApplicationAndCredentialRelatedData => ({
+  credentialsProviderKey: "github",
+  credentialSubjectProviderString: `ClearTextGithubOrg#${githubOrgName}#6887938`,
+  grantApplicationProviderAnswer: {
+    question: "Github Organization",
+    answer: `${githubOrgName}`,
+  },
+});
+
+export const makeApplicationAndCredentialRelatedDataForTwitter = (
+  twitterHandle = "twitter"
+): ApplicationAndCredentialRelatedData => ({
+  credentialsProviderKey: "twitter",
+  credentialSubjectProviderString: `ClearTextTwitter#${twitterHandle}`,
+  grantApplicationProviderAnswer: {
+    question: "Twitter",
+    answer: `${twitterHandle}`,
+  },
+});
+
+export const makeGrantApplicationData = (
+  credentialProviderAndAnswersTestData: ApplicationAndCredentialRelatedData[] = [],
+  ownerAddress: string = faker.finance.ethereumAddress()
+): GrantApplication => {
   return {
     id: faker.random.alpha({ count: 10, casing: "lower" }),
     round: faker.random.alpha({ count: 59, casing: "lower" }),
@@ -77,10 +102,7 @@ export const makeGrantApplicationData = (
       id: faker.random.alpha({ count: 10, casing: "lower" }),
       owners: [
         {
-          address: githubVcSubjectAddress ?? faker.finance.ethereumAddress(),
-        },
-        {
-          address: twitterVcSubjectAddress ?? faker.finance.ethereumAddress(),
+          address: ownerAddress,
         },
       ],
       title: faker.lorem.sentence(2),
@@ -92,25 +114,12 @@ export const makeGrantApplicationData = (
         protocol: randomInt(1, 10),
         pointer: faker.random.alpha({ count: 59, casing: "lower" }),
       },
-      credentials: projectCredentials,
+      credentials: makeProjectCredentialsFromTestData(
+        credentialProviderAndAnswersTestData,
+        ownerAddress
+      ),
     },
-    answers: [
-      {
-        questionId: 1,
-        question: "Twitter",
-        answer: "DpoppDev",
-      },
-      {
-        questionId: 2,
-        question: "Github",
-        answer: "grant-round",
-      },
-      {
-        questionId: 3,
-        question: "Github Organization",
-        answer: "gitcoinco",
-      },
-    ],
+    answers: makeAnswersFromTestData(credentialProviderAndAnswersTestData),
     projectsMetaPtr: {
       protocol: randomInt(1, 10),
       pointer: faker.random.alpha({ count: 59, casing: "lower" }),
@@ -118,65 +127,51 @@ export const makeGrantApplicationData = (
     status: ["PENDING", "APPROVED", "REJECTED", "APPEAL", "FRAUD"][
       randomInt(0, 4)
     ] as ProjectStatus,
-    ...overrides,
   };
 };
 
-export const githubCredentialData: VerifiableCredential = {
-  "@context": ["https://www.w3.org/2018/credentials/v1"],
-  type: ["VerifiableCredential"],
-  credentialSubject: {
-    id: "did:pkh:eip155:1:0x7A67063c391F266D31eA6c9eC7C788c1323B7746",
-    hash: "v0.0.0:kJUEWnuUKJQmxma4ov/QZjxL6ohzRGL5Fz9peShRgmw=",
-    "@context": [
-      {
-        hash: "https://schema.org/Text",
-        provider: "https://schema.org/Text",
-      },
-    ],
-    provider: "ClearTextGithubOrg#gitcoinco#6887938",
-  },
-  issuer: `${IAM_SERVER}`,
-  issuanceDate: "2022-08-10T16:09:56.284Z",
-  proof: {
-    type: "Ed25519Signature2018",
-    proofPurpose: "assertionMethod",
-    verificationMethod:
-      "did:key:z6Mks2YNwbkzDgKLuQs1TS3whP9RdXrGXtVqt5JcCLoQu86W#z6Mks2YNwbkzDgKLuQs1TS3whP9RdXrGXtVqt5JcCLoQu86W",
-    created: "2022-08-10T16:09:56.285Z",
-    jws: "eyJhbGciOiJFZERTQSIsImNyaXQiOlsiYjY0Il0sImI2NCI6ZmFsc2V9..DpYFl50koEsj_XGa2rK9AlYny8Uvn3UZ-sCC6a0AW06TCSNmS19_5Y5TExqQtJZWAYlWFAWsuAwNiwhVFY-oDw",
-  },
-  expirationDate: "2022-11-08T17:09:56.284Z",
+export const makeProjectCredentialsFromTestData = (
+  credentialProviderAndAnswersTestData: ApplicationAndCredentialRelatedData[],
+  credentialSubjectAddress: string = faker.finance.ethereumAddress()
+): ProjectCredentials => {
+  return credentialProviderAndAnswersTestData.reduce(
+    (
+      aggregator: ProjectCredentials,
+      it: ApplicationAndCredentialRelatedData
+    ) => {
+      aggregator[it.credentialsProviderKey] = {
+        "@context": ["https://www.w3.org/2018/credentials/v1"],
+        type: ["VerifiableCredential"],
+        credentialSubject: {
+          id: `did:pkh:eip155:1:${credentialSubjectAddress}`,
+          "@context": [],
+          provider: it.credentialSubjectProviderString,
+        },
+        issuer: `${IAM_SERVER}`,
+        issuanceDate: "2022-08-10T16:09:56.284Z",
+        proof: {
+          type: "Ed25519Signature2018",
+          proofPurpose: "assertionMethod",
+          verificationMethod:
+            "did:key:z6Mks2YNwbkzDgKLuQs1TS3whP9RdXrGXtVqt5JcCLoQu86W#z6Mks2YNwbkzDgKLuQs1TS3whP9RdXrGXtVqt5JcCLoQu86W",
+          created: "2022-08-10T16:09:56.285Z",
+          jws: "eyJhbGciOiJFZERTQSIsImNyaXQiOlsiYjY0Il0sImI2NCI6ZmFsc2V9..DpYFl50koEsj_XGa2rK9AlYny8Uvn3UZ-sCC6a0AW06TCSNmS19_5Y5TExqQtJZWAYlWFAWsuAwNiwhVFY-oDw",
+        },
+        expirationDate: "2022-11-08T17:09:56.284Z",
+      };
+      return aggregator;
+    },
+    {}
+  );
 };
-Object.freeze(githubCredentialData);
 
-export const twitterCredentialData: VerifiableCredential = {
-  "@context": ["https://www.w3.org/2018/credentials/v1"],
-  type: ["VerifiableCredential"],
-  credentialSubject: {
-    id: "did:pkh:eip155:1:0x7A67063c391F266D31eA6c9eC7C788c1323B7746",
-    hash: "v0.0.0:kJUEWnuUKJQmxma4ov/QZjxL6ohzRGL5Fz9peShRgmw=",
-    "@context": [
-      {
-        hash: "https://schema.org/Text",
-        provider: "https://schema.org/Text",
-      },
-    ],
-    provider: "ClearTextTwitter#DpoppDev",
-  },
-  issuer: `${IAM_SERVER}`,
-  issuanceDate: "2022-08-10T16:09:56.284Z",
-  proof: {
-    type: "Ed25519Signature2018",
-    proofPurpose: "assertionMethod",
-    verificationMethod:
-      "did:key:z6Mks2YNwbkzDgKLuQs1TS3whP9RdXrGXtVqt5JcCLoQu86W#z6Mks2YNwbkzDgKLuQs1TS3whP9RdXrGXtVqt5JcCLoQu86W",
-    created: "2022-08-10T16:09:56.285Z",
-    jws: "eyJhbGciOiJFZERTQSIsImNyaXQiOlsiYjY0Il0sImI2NCI6ZmFsc2V9..DpYFl50koEsj_XGa2rK9AlYny8Uvn3UZ-sCC6a0AW06TCSNmS19_5Y5TExqQtJZWAYlWFAWsuAwNiwhVFY-oDw",
-  },
-  expirationDate: "2022-11-08T17:09:56.284Z",
-};
-Object.freeze(twitterCredentialData);
+export const makeAnswersFromTestData = (
+  credentialProviderAndAnswersTestData: ApplicationAndCredentialRelatedData[]
+): AnswerBlock[] =>
+  credentialProviderAndAnswersTestData.map((it, index) => ({
+    ...it.grantApplicationProviderAnswer,
+    questionId: index,
+  }));
 
 export const renderWrapped = (ui: JSX.Element) => {
   render(
