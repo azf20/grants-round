@@ -223,25 +223,47 @@ describe("ViewApplicationPage", () => {
     }
   );
 
-  it("shows invalid badge when project owner address does not match vc", () => {
-    verifyCredentialMock.mockResolvedValue(true);
-    const projectCredentials: ProjectCredentials = {
-      github: { ...githubCredentialData },
-    };
-    const grantApplicationData = makeGrantApplicationData(
-      {},
-      projectCredentials
-    );
-    grantApplicationData!.project!.owners[0].address = "bad";
+  it.each([
+    {
+      provider: "github",
+      projectCredentials: {
+        github: githubCredentialData,
+      } as ProjectCredentials,
+    },
+    {
+      provider: "twitter",
+      projectCredentials: {
+        twitter: twitterCredentialData,
+      } as ProjectCredentials,
+    },
+  ])(
+    "shows invalid $provider badge when project owner address does not match vc",
+    async ({ provider, projectCredentials }) => {
+      (useUpdateGrantApplicationMutation as any).mockReturnValue([
+        jest.fn(),
+        { isLoading: false },
+      ]);
 
-    (useListGrantApplicationsQuery as any).mockReturnValue(
-      grantApplicationData
-    );
+      verifyCredentialMock.mockResolvedValue(true);
+      const grantApplicationData = {
+        application: makeGrantApplicationData({}, projectCredentials),
+      };
 
-    renderWrapped(<ViewApplicationPage />);
+      grantApplicationData!.application.project!.owners.forEach((it) => {
+        it.address = "bad";
+      });
 
-    expect(
-      screen.queryByTestId(`github-verifiable-credential`)
-    ).not.toBeInTheDocument();
-  });
+      (useListGrantApplicationsQuery as any).mockReturnValue(
+        grantApplicationData
+      );
+
+      renderWrapped(<ViewApplicationPage />);
+
+      await screen.findByTestId(`${provider}-verifiable-credential-unverified`);
+
+      expect(
+        screen.queryByTestId(`${provider}-verifiable-credential`)
+      ).not.toBeInTheDocument();
+    }
+  );
 });
