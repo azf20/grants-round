@@ -1,5 +1,5 @@
 import CreateRoundPage from "../CreateRoundPage";
-import { makeProgramData, renderWithContext } from "../../../test-utils";
+import { makeProgramData, renderWithProgramContext } from "../../../test-utils";
 import { faker } from "@faker-js/faker";
 import { RoundDetailForm } from "../RoundDetailForm";
 import { RoundApplicationForm } from "../RoundApplicationForm";
@@ -33,7 +33,7 @@ describe("<CreateRoundPage />", () => {
   it("sends program to form wizard", () => {
     const programs = [makeProgramData({ id: programId })];
 
-    renderWithContext(<CreateRoundPage />, { programs });
+    renderWithProgramContext(<CreateRoundPage />, { programs });
 
     const firstFormWizardCall = formWizardSpy.mock.calls[0];
     const firstCallArgument = firstFormWizardCall[0];
@@ -47,7 +47,7 @@ describe("<CreateRoundPage />", () => {
     const programToChoose = makeProgramData({ id: programId });
     const programs = [makeProgramData(), programToChoose, makeProgramData()];
 
-    renderWithContext(<CreateRoundPage />, { programs });
+    renderWithProgramContext(<CreateRoundPage />, { programs });
 
     const firstFormWizardCall = formWizardSpy.mock.calls[0];
     const firstCallArgument = firstFormWizardCall[0];

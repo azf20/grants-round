@@ -11,7 +11,7 @@ import { Web3Provider } from "@ethersproject/providers";
 export async function listPrograms(
   address: string,
   signerOrProvider: Web3Provider
-): Promise<{ data: Program[]; error: string | undefined }> {
+): Promise<Program[]> {
   try {
     // fetch chain id
     const { chainId } = await signerOrProvider.getNetwork();

@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { screen } from "@testing-library/react";
+
+import { render, screen } from "@testing-library/react";
 import { useWallet } from "../../common/Auth";
 import { useListRoundsQuery } from "../../api/services/round";
 import ViewRoundPage from "../ViewRoundPage";
@@ -7,13 +8,15 @@ import { GrantApplication, Round } from "../../api/types";
 import {
   makeGrantApplicationData,
   makeRoundData,
-  renderWrapped,
+  wrapWithProgramContext,
+  wrapWithRoundContext,
 } from "../../../test-utils";
 import {
   useBulkUpdateGrantApplicationsMutation,
   useListGrantApplicationsQuery,
 } from "../../api/services/grantApplication";
 import { useDisconnect, useSwitchNetwork } from "wagmi";
+import { useParams } from "react-router-dom";
 
 jest.mock("../../common/Auth");
 jest.mock("../../api/services/round");
@@ -26,9 +29,18 @@ jest.mock("@rainbow-me/rainbowkit", () => ({
 const mockRoundData: Round = makeRoundData();
 const mockApplicationData: GrantApplication[] = [];
 
+jest.mock("react-router-dom", () => ({
+  ...jest.requireActual("react-router-dom"),
+  useParams: jest.fn(),
+}));
+
 describe("the view round page", () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    (useParams as jest.Mock).mockImplementation(() => {
+      return {
+        id: mockRoundData.id,
+      };
+    });
 
     (useWallet as jest.Mock).mockReturnValue({
       chain: {},
@@ -60,24 +72,47 @@ describe("the view round page", () => {
   });
 
   it("should display 404 when there no round is found", () => {
-    (useListRoundsQuery as jest.Mock).mockReturnValue({
-      isLoading: false,
-      isSuccess: true,
+    (useParams as jest.Mock).mockReturnValueOnce({
+      id: undefined,
     });
 
-    renderWrapped(<ViewRoundPage />);
+    render(
+      wrapWithProgramContext(
+        wrapWithRoundContext(<ViewRoundPage />, {
+          data: [],
+          isLoading: false,
+        }),
+        { programs: [] }
+      )
+    );
     expect(screen.getByText("404 ERROR")).toBeInTheDocument();
   });
 
   it("should display access denied when wallet accessing is not program operator", () => {
     (useWallet as jest.Mock).mockReturnValue({ chain: {} });
 
-    renderWrapped(<ViewRoundPage />);
+    render(
+      wrapWithProgramContext(
+        wrapWithRoundContext(<ViewRoundPage />, {
+          data: [mockRoundData],
+          isLoading: false,
+        }),
+        { programs: [] }
+      )
+    );
     expect(screen.getByText("Access Denied!")).toBeInTheDocument();
   });
 
   it("should display copy when there are no applicants for a given round", () => {
-    renderWrapped(<ViewRoundPage />);
+    render(
+      wrapWithProgramContext(
+        wrapWithRoundContext(<ViewRoundPage />, {
+          data: [mockRoundData],
+          isLoading: false,
+        }),
+        { programs: [] }
+      )
+    );
     expect(screen.getByText("No Applications")).toBeInTheDocument();
   });
 
@@ -94,7 +129,15 @@ describe("the view round page", () => {
       isSuccess: true,
     });
 
-    renderWrapped(<ViewRoundPage />);
+    render(
+      wrapWithProgramContext(
+        wrapWithRoundContext(<ViewRoundPage />, {
+          data: [mockRoundData],
+          isLoading: false,
+        }),
+        { programs: [] }
+      )
+    );
 
     expect(
       parseInt(screen.getByTestId("received-application-counter").textContent!)
