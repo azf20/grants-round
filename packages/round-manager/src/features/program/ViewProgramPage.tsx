@@ -164,7 +164,7 @@ export default function ViewProgram() {
   );
 
   return isLoading ? (
-    <Spinner text="Fetching Program" />
+    <Spinner text="We're fetching your Program." />
   ) : (
     <>
       {!programExists && <NotFoundPage />}
@@ -217,7 +217,9 @@ export default function ViewProgram() {
                         {roundItems}
                       </div>
                     )}
-                    {isRoundLoading && <p>Fetching your rounds...</p>}
+                    {isRoundLoading && (
+                      <Spinner text="We're fetching your Rounds." />
+                    )}
                   </div>
                 </div>
               </div>

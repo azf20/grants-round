@@ -28,8 +28,8 @@ interface Action {
 type Dispatch = (action: Action) => void;
 
 export type ProgramContextType =
-  { state: ProgramState; dispatch: Dispatch } | undefined;
-
+  | { state: ProgramState; dispatch: Dispatch }
+  | undefined;
 
 export const initialProgramState: ProgramState = {
   programs: [],
@@ -144,7 +144,9 @@ export const useProgramById = (
   const { provider: walletProvider } = useWallet();
   useEffect(() => {
     if (id) {
-      const existingProgram = context.state.programs.find((program) => program.id === id)
+      const existingProgram = context.state.programs.find(
+        (program) => program.id === id
+      );
 
       if (!existingProgram) {
         fetchProgramsById(context.dispatch, id, walletProvider);

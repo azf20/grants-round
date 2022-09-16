@@ -39,6 +39,6 @@ describe("<ListProgramPage />", () => {
       programs: [],
     });
 
-    screen.getByText("Fetching Programs");
+    screen.getByTestId("loading-spinner");
   });
 });

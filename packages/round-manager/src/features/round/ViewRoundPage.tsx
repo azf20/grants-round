@@ -18,6 +18,8 @@ import tw from "tailwind-styled-components";
 import { datadogLogs } from "@datadog/browser-logs";
 import NotFoundPage from "../common/NotFoundPage";
 import AccessDenied from "../common/AccessDenied";
+import CopyToClipboardButton from "../common/CopyToClipboardButton";
+import { Spinner } from "../common/Spinner";
 import { useRoundById } from "../../context/RoundContext";
 
 export default function ViewRoundPage() {
@@ -25,7 +27,7 @@ export default function ViewRoundPage() {
   datadogLogs.logger.info(`====> URL: ${window.location.href}`);
 
   const { id } = useParams();
-  const { address, provider } = useWallet();
+  const { address, provider, chain } = useWallet();
 
   const { round, isLoading: isRoundsLoading, error } = useRoundById(id);
   const isRoundsFetched = !isRoundsLoading && !error;
@@ -104,7 +106,7 @@ export default function ViewRoundPage() {
                 {round?.roundMetadata?.name || "Round Details"}
               </h1>
               <div className="flex flex-row flex-wrap">
-                <div className="flex mr-8 lg:mr-36 pb-3">
+                <div className="flex mr-8 lg:mr-36">
                   <CalendarIcon className="h-5 w-5 mr-2 text-grey-400" />
                   <p className="text-sm mr-1 text-grey-400">Applications:</p>
                   <p className="text-sm">
@@ -122,6 +124,19 @@ export default function ViewRoundPage() {
                     <span className="mx-1">-</span>
                     {formatDate(round?.roundEndTime) || "..."}
                   </p>
+                </div>
+
+                <div className="flex justify-end grow relative">
+                  <div className="text-right absolute bottom-0">
+                    <p className="text-xs mb-1">
+                      Copy link to round application
+                    </p>
+                    <CopyToClipboardButton
+                      textToCopy={`https://granthub.gitcoin.co/#/chains/${chain.id}/rounds/${id}`}
+                      styles="text-xs p-2"
+                      iconStyle="h-4 w-4 mr-1"
+                    />
+                  </div>
                 </div>
               </div>
             </header>
@@ -212,7 +227,9 @@ export default function ViewRoundPage() {
               )}
 
               <div className="grid md:grid-cols-4 sm:grid-cols-1 gap-4 mb-8">
-                {isRoundsLoading && <p>Fetching round information...</p>}
+                {isRoundsLoading && (
+                  <Spinner text="We're fetching your Round." />
+                )}
               </div>
             </main>
           </div>
