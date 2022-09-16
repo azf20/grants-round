@@ -5,9 +5,10 @@ import {
   makeApplicationAndCredentialRelatedDataForGithub,
   makeApplicationAndCredentialRelatedDataForTwitter,
   renderWrapped,
+  renderWithContext,
 } from "../../../test-utils";
 import ViewApplicationPage from "../ViewApplicationPage";
-import { screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import { useListRoundsQuery } from "../../api/services/round";
 import {
   useListGrantApplicationsQuery,
@@ -16,6 +17,11 @@ import {
 import { useDisconnect, useSwitchNetwork } from "wagmi";
 import { PassportVerifier } from "@gitcoinco/passport-sdk-verifier";
 import { AnswerBlock } from "../../api/types";
+import {
+  ApplicationContext,
+  ApplicationProvider,
+} from "../../../context/ApplicationContext";
+import { MemoryRouter } from "react-router-dom";
 
 jest.mock("../../api/services/grantApplication");
 jest.mock("../../api/services/round");
@@ -116,21 +122,27 @@ describe("ViewApplicationPage", () => {
     ) => {
       verifyCredentialMock.mockResolvedValue(true);
 
-      const grantApplicationWithValidVc = {
-        application: makeGrantApplicationData(
-          applicationAndCredentialRelatedData
-        ),
-      };
-
-      (useListGrantApplicationsQuery as any).mockReturnValue(
-        grantApplicationWithValidVc
+      const grantApplicationWithValidVc = makeGrantApplicationData(
+        applicationAndCredentialRelatedData
       );
+
       (useUpdateGrantApplicationMutation as any).mockReturnValue([
         jest.fn(),
         { isLoading: false },
       ]);
 
-      renderWrapped(<ViewApplicationPage />);
+      render(
+        <MemoryRouter>
+          <ApplicationContext.Provider
+            value={{
+              state: { application: grantApplicationWithValidVc },
+              dispatch: jest.fn(),
+            }}
+          >
+            <ViewApplicationPage />
+          </ApplicationContext.Provider>
+        </MemoryRouter>
+      );
 
       expect(
         await screen.findByTestId(`${provider}-verifiable-credential`)

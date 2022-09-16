@@ -74,12 +74,12 @@ export default function ViewApplicationPage() {
   const navigate = useNavigate();
   const verifier = new PassportVerifier();
 
-  const {
+  /*  const {
     application,
     isLoading,
     isSuccess: isApplicationFetched,
   } = useListGrantApplicationsQuery(
-    /* Non-issue since if ID was null or undef., we wouldn't render this page, but a 404 instead  */
+    /!* Non-issue since if ID was null or undef., we wouldn't render this page, but a 404 instead  *!/
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     { roundId: roundId!, signerOrProvider: provider, id },
     {
@@ -89,7 +89,9 @@ export default function ViewApplicationPage() {
         isSuccess,
       }),
     }
-  );
+  );*/
+
+  const application = useApplication();
 
   const credentials: ProjectCredentials =
     application?.project!.credentials ?? {};
