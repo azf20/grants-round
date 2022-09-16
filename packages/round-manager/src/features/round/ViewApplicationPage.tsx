@@ -32,6 +32,7 @@ import { Lit } from "../api/lit";
 import { utils } from "ethers";
 import NotFoundPage from "../common/NotFoundPage";
 import AccessDenied from "../common/AccessDenied";
+import { useApplicationById } from "../../context/ApplicationContext";
 
 type ApplicationStatus = "APPROVED" | "REJECTED";
 
@@ -91,7 +92,7 @@ export default function ViewApplicationPage() {
     }
   );*/
 
-  const application = useApplication();
+  const application = useApplicationById();
 
   const credentials: ProjectCredentials =
     application?.project!.credentials ?? {};

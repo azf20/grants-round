@@ -1,9 +1,10 @@
+import { fetchFromIPFS, graphql_fetch } from "./utils";
 import {
-  checkGrantApplicationStatus,
-  fetchFromIPFS,
-  graphql_fetch,
-} from "./utils";
-import { GrantApplication } from "./types";
+  GrantApplication,
+  GrantApplicationId,
+  MetadataPointer,
+  ProjectStatus,
+} from "./types";
 import { updateApplicationStatusFromContract } from "./services/grantApplication";
 
 export const getApplicationById = async (id: string, signerOrProvider: any) => {
@@ -72,4 +73,26 @@ export const getApplicationById = async (id: string, signerOrProvider: any) => {
     console.error("error", e);
     return {}; // TODO
   }
+};
+
+/**
+ * Check status of a grant application
+ *
+ * @param id - the application id
+ * @param projectsMetaPtr - the pointer to a decentralized storage
+ */
+export const checkGrantApplicationStatus = async (
+  id: GrantApplicationId,
+  projectsMetaPtr: MetadataPointer
+): Promise<ProjectStatus> => {
+  let reviewedApplications: any = [];
+
+  // read data from ipfs
+  if (projectsMetaPtr) {
+    reviewedApplications = await fetchFromIPFS(projectsMetaPtr.pointer);
+  }
+
+  const obj = reviewedApplications.find((o: any) => o.id === id);
+
+  return obj ? obj.status : "PENDING";
 };
