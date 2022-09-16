@@ -110,7 +110,15 @@ describe("the view round page", () => {
   });
 
   it("should display Copy to Clipboard", () => {
-    renderWrapped(<ViewRoundPage />);
+    render(
+      wrapWithProgramContext(
+        wrapWithRoundContext(<ViewRoundPage />, {
+          data: [mockRoundData],
+          isLoading: false,
+        }),
+        { programs: [] }
+      )
+    );
     expect(screen.getByText("Copy to clipboard")).toBeInTheDocument();
   });
 
@@ -162,11 +170,15 @@ describe("the view round page", () => {
   });
 
   it("should display loading spinner when round is loading", () => {
-    (useListRoundsQuery as jest.Mock).mockReturnValue({
-      isLoading: true,
-    });
-
-    renderWrapped(<ViewRoundPage />);
+    render(
+      wrapWithProgramContext(
+        wrapWithRoundContext(<ViewRoundPage />, {
+          data: [],
+          isLoading: true,
+        }),
+        { programs: [] }
+      )
+    );
 
     expect(screen.getByTestId("loading-spinner")).toBeInTheDocument();
   });
