@@ -60,6 +60,18 @@ export const ApplicationProvider = ({
   );
 };
 
+function fetchApplicationById(
+  dispatch: Dispatch,
+  id: string | undefined,
+  walletProvider: any
+) {
+  getApplicationById(id, walletProvider).then((application) => {
+    dispatch({ type: ActionType.SET_PROGRAMS, payload: application });
+  });
+  // .catch()
+  // .finally()
+}
+
 export const useApplicationById = (
   id?: string
 ): {

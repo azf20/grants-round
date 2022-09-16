@@ -101,7 +101,7 @@ const updateApplicationList = async (
  *  - remove updateApplicationStatusFromContract
  *  - remove commented out status filter in GetGrantApplications query
  */
-const updateApplicationStatusFromContract = async (
+export const updateApplicationStatusFromContract = async (
   applications: GrantApplication[],
   projectsMetaPtr: MetadataPointer,
   filterByStatus?: string
