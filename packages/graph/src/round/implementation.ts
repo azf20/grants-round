@@ -2,18 +2,23 @@ import {
   NewProjectApplication as NewProjectApplicationEvent,
   ProjectsMetaPtrUpdated as ProjectsMetaPtrUpdatedEvent,
   RoleGranted as RoleGrantedEvent,
-  RoleRevoked as RoleRevokedEvent
+  RoleRevoked as RoleRevokedEvent,
 } from "../../generated/templates/RoundImplementation/RoundImplementation";
+
+import {
+  ProjectMetadata as ProjectMetadataTemplate
+} from "../../generated/templates";
 
 import {
   MetaPtr,
   Round,
   RoundAccount,
   RoundRole,
-  RoundProject
+  RoundProject,
+  RoundProjectMetadata
 } from "../../generated/schema";
 import { fetchMetaPtrData, generateID, updateMetaPtr } from "../utils";
-import { JSONValueKind, log, store } from '@graphprotocol/graph-ts';
+import { JSONValueKind, log, store, Bytes, json } from '@graphprotocol/graph-ts';
 
 
 // @dev: Enum for different states a project application can be in
@@ -125,7 +130,6 @@ export function handleNewProjectApplication(event: NewProjectApplicationEvent): 
   project.project = _project.toString();
   project.round = round.id;
   project.metaPtr = metaPtr.id;
-  project.status = "PENDING";
   project.save();
 }
 
@@ -158,14 +162,19 @@ export function handleProjectsMetaPtrUpdated(event: ProjectsMetaPtrUpdatedEvent)
 
   round.save();
 
-  // fetch projectsMetaPtr content
-  const metaPtrData = fetchMetaPtrData(protocol, pointer);
-
-  if (!metaPtrData) {
-    log.warning('--> handleProjectsMetaPtrUpdated: metaPtrData is null {}', [_round])
-    return;
+  log.warning('--> got some metadata {} {}', [protocol.toString(), pointer])
+  if(protocol == 1) {
+    log.warning('--> making a dataSource {}', [pointer])
+    ProjectMetadataTemplate.create(pointer);
   }
+}
 
+
+export function handleProjectMetadata(file: string, content: Bytes): void {
+
+  log.warning('--> found the file {}', [file])
+
+  const metaPtrData = json.fromBytes(content)
   const _projects = metaPtrData.toArray();
 
   for (let i = 0; i < _projects.length; i++) {
@@ -178,12 +187,15 @@ export function handleProjectsMetaPtrUpdated(event: ProjectsMetaPtrUpdatedEvent)
     const projectId = _id.toString().toLowerCase();
 
     // load project entity
-    let project = RoundProject.load(projectId);
+    let project = RoundProjectMetadata.load(projectId);
 
     let isProjectUpdated = false;
 
     // skip if project cannot be loaded
-    if (!project) continue;
+    if (!project) {
+      project = new RoundProjectMetadata(projectId);
+      project.roundProject = projectId;
+    }
 
     // get status of project
     let status = _project.get("status");

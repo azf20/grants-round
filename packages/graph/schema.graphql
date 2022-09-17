@@ -81,8 +81,16 @@ type RoundAccount @entity {
 type RoundProject @entity {
   id: ID!
   project: String!
-  status: String!
   metaPtr: MetaPtr!
   round: Round!
+  metadata: RoundProjectMetadata @derivedFrom(field: "roundProject")
+}
+
+# id: round.toHex()-project.toHex()
+
+type RoundProjectMetadata @entity {
+  id: ID!
+  status: String
   payoutAddress: String
+  roundProject: RoundProject
 }
