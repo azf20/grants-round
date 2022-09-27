@@ -18,7 +18,7 @@ import {
   RoundProjectMetadata
 } from "../../generated/schema";
 import { fetchMetaPtrData, generateID, updateMetaPtr } from "../utils";
-import { JSONValueKind, log, store, Bytes, json } from '@graphprotocol/graph-ts';
+import { JSONValueKind, log, store, Bytes, json, DataSourceContext, dataSource, ipfs } from '@graphprotocol/graph-ts';
 
 
 // @dev: Enum for different states a project application can be in
@@ -164,15 +164,19 @@ export function handleProjectsMetaPtrUpdated(event: ProjectsMetaPtrUpdatedEvent)
 
   log.warning('--> got some metadata {} {}', [protocol.toString(), pointer])
   if(protocol == 1) {
-    log.warning('--> making a dataSource {}', [pointer])
-    ProjectMetadataTemplate.create(pointer);
+    let context = new DataSourceContext()
+    context.setString('ipfsHash', pointer)
+    ProjectMetadataTemplate.createWithContext(pointer, context);
   }
 }
 
 
-export function handleProjectMetadata(file: string, content: Bytes): void {
+export function handleProjectMetadata(content: Bytes): void {
 
-  log.warning('--> found the file {}', [file])
+  let context = dataSource.context()
+  let ipfsHash = context.getString('ipfsHash')
+
+  log.warning('--> found the file {}', [ipfsHash])
 
   const metaPtrData = json.fromBytes(content)
   const _projects = metaPtrData.toArray();
@@ -193,6 +197,7 @@ export function handleProjectMetadata(file: string, content: Bytes): void {
 
     // skip if project cannot be loaded
     if (!project) {
+      log.warning('-->creating a new project {}', [projectId])
       project = new RoundProjectMetadata(projectId);
       project.roundProject = projectId;
     }
@@ -211,6 +216,7 @@ export function handleProjectMetadata(file: string, content: Bytes): void {
       // update project status
       project.status = status.toString();
       isProjectUpdated = true;
+      log.warning('--> updating status {}', [status.toString()])
     }
 
     if (
@@ -221,9 +227,13 @@ export function handleProjectMetadata(file: string, content: Bytes): void {
       // update project payout address
       project.payoutAddress = payoutAddress.toString();
       isProjectUpdated = true;
+      log.warning('--> updating payout address {}', [payoutAddress.toString()])
     }
 
-    if (isProjectUpdated) project.save();
+    if (isProjectUpdated) {
+      log.warning('--> saving project {}', [project.id])
+      project.save()
+    };
   }
 
 }

@@ -83,7 +83,7 @@ type RoundProject @entity {
   project: String!
   metaPtr: MetaPtr!
   round: Round!
-  metadata: RoundProjectMetadata @derivedFrom(field: "roundProject")
+  metadata: [RoundProjectMetadata!]! @derivedFrom(field: "roundProject")
 }
 
 # id: round.toHex()-project.toHex()
