@@ -197,7 +197,7 @@ export function handleProjectMetadata(content: Bytes): void {
 
     // skip if project cannot be loaded
     if (!project) {
-      log.warning('-->creating a new project {}', [projectId])
+      log.warning('--> creating a new project {}', [projectId])
       project = new RoundProjectMetadata(projectId);
       project.roundProject = projectId;
     }
